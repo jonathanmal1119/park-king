@@ -1,7 +1,12 @@
 import { Alert } from 'react-native';
 import io from 'socket.io-client';
 
-const socket = io('http://10.136.12.40:30002');
+const socket = io('http://10.136.12.40:30002', {
+    transports: ['websocket'],
+    autoConnect: true
+});
+
+let currentSocketId = null;
 
 export const setupSocketListeners = (onConnect) => {
     socket.on('connect', () => {
