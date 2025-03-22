@@ -1,11 +1,51 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
+import { Image, StyleSheet, Platform, Button, Alert } from 'react-native';
+import { useEffect } from 'react';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { setupSocketListeners, getSocketId } from '@/services/socketService';
 
 export default function HomeScreen() {
+  useEffect(() => {
+    const cleanup = setupSocketListeners((socketId: string) => {
+      console.log('Connected to socket server with ID:', socketId);
+    });
+
+    return cleanup;
+  }, []);
+
+  async function postParkingSpot(latitude: number, longitude: number) {
+    try {
+        console.log('Starting request...');
+        // Use the correct URL based on platform
+        const url = Platform.OS === 'android'
+            ? 'http://10.0.2.2:30001/post-parking-spot'    // For Android emulator
+            : Platform.OS === 'ios'
+                ? 'http://10.136.12.40:30002/post-parking-spot' // For iOS simulator
+                : 'http://localhost:30001/post-parking-spot'; // For web
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                latitude: latitude,
+                longitude: longitude,
+                reporterId: getSocketId() // Add the socket ID to identify the reporter
+            })
+        });
+        
+        const data = await response.json();
+        console.log('Received data:', data);
+        return data;
+    } catch (error) {
+        console.log('Full error details:', error);
+        throw error;
+    }
+}
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -17,7 +57,6 @@ export default function HomeScreen() {
       }>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
@@ -50,6 +89,10 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
+      <Button  
+      title="Press me"
+      onPress={() => postParkingSpot(37.7749, -122.4194)}
+      />
     </ParallaxScrollView>
   );
 }
