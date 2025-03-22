@@ -1,13 +1,23 @@
 // App.js
 import { StyleSheet, View } from 'react-native';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useState, useEffect } from 'react';
 import { LocationObject } from 'expo-location';
+import { setupSocketListeners } from '@/services/socketService';
+
+type MarkerType = {
+  coordinate: {
+    latitude: number;
+    longitude: number;
+  };
+  id: string;
+};
 
 export default function MapScreen() {
   const [location, setLocation] = useState<LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [markers, setMarkers] = useState<MarkerType[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -39,6 +49,27 @@ export default function MapScreen() {
     })();
   }, []);
 
+  useEffect(() => {
+    const cleanup = setupSocketListeners(
+      (socketId: string) => {
+        console.log('Connected to socket server with ID:', socketId);
+      },
+      addPin
+    );
+
+    return cleanup;
+  }, []);
+
+  const addPin = (latitude: number, longitude: number) => {
+    setMarkers(prevMarkers => [
+      ...prevMarkers,
+      {
+        coordinate: { latitude, longitude },
+        id: Date.now().toString()
+      }
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <MapView
@@ -51,7 +82,14 @@ export default function MapScreen() {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
-      />
+      >
+        {markers.map(marker => (
+          <Marker
+            key={marker.id}
+            coordinate={marker.coordinate}
+          />
+        ))}
+      </MapView>
     </View>
   );
 }

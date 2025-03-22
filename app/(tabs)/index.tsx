@@ -19,10 +19,10 @@ export default function HomeScreen() {
         console.log('Starting request...');
         // Use the correct URL based on platform
         const url = Platform.OS === 'android'
-            ? 'http://10.0.2.2:30001/post-parking-spot'    // For Android emulator
+            ? 'http://10.0.2.2:30002/post-parking-spot'    // For Android emulator
             : Platform.OS === 'ios'
                 ? 'http://10.136.12.40:30002/post-parking-spot' // For iOS simulator
-                : 'http://localhost:30001/post-parking-spot'; // For web
+                : 'http://localhost:30002/post-parking-spot'; // For web
 
         const response = await fetch(url, {
             method: 'POST',
@@ -91,7 +91,7 @@ export default function HomeScreen() {
       </ThemedView>
       <Button  
       title="Press me"
-      onPress={() => postParkingSpot(37.7749, -122.4194)}
+      onPress={() => postParkingSpot(40.7128, -74.27)}
       />
     </ParallaxScrollView>
   );

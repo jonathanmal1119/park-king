@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import io from 'socket.io-client';
 
 const socket = io('http://10.136.12.40:30002', {
@@ -8,13 +8,17 @@ const socket = io('http://10.136.12.40:30002', {
 
 let currentSocketId = null;
 
-export const setupSocketListeners = (onConnect) => {
+export const setupSocketListeners = (onConnect, addPin) => {
     socket.on('connect', () => {
         console.log('Connected with ID:', socket.id);
+        currentSocketId = socket.id;
         if (onConnect) onConnect(socket.id);
     });
 
     socket.on('newParkingSpot', (data) => {
+        if (addPin) {
+            addPin(data.latitude, data.longitude);
+        }
         Alert.alert(
             'New Parking Spot!',
             `Parking spot available at: ${data.latitude}, ${data.longitude}`,
@@ -24,7 +28,6 @@ export const setupSocketListeners = (onConnect) => {
 
     return () => {
         socket.off('connect');
-        socket.off('newParkingSpot');
         socket.off('newParkingSpot');
         currentSocketId = null;
     };
@@ -60,6 +63,6 @@ export async function postParkingSpot(latitude, longitude) {
 
 export function updateLocation(latitude, longitude) {
     socket.emit('updateLocation', { latitude, longitude });
-} 
+}
 
 export const getSocketId = () => socket.id;
