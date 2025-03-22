@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, Platform, Button, Alert } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -6,6 +6,39 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
+
+  async function postParkingSpot() {
+    try {
+        console.log('Starting request...');
+        // Use the correct URL based on platform
+        const url = Platform.OS === 'android'
+            ? 'http://10.0.2.2:30001/'    // For Android emulator
+            : Platform.OS === 'ios'
+                ? 'http://10.136.12.40:30002/' // For iOS simulator
+                : 'http://localhost:30001/'; // For web
+                
+        console.log('Requesting URL:', url);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        const data = await response.json();
+        console.log('Received data:', data);
+        return data;
+    } catch (error) {
+        console.log('Full error details:', error);
+        throw error;
+    }
+}
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -50,6 +83,10 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
+      <Button  
+      title="Press me"
+      onPress={() => postParkingSpot()}
+      />
     </ParallaxScrollView>
   );
 }
